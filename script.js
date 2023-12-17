@@ -3,42 +3,58 @@
 const itemForm = document.getElementById('item-form');
 const listItems = document.getElementById('item-list');
 const itemInput = document.getElementById('item-input');
+const itemFilter = document.getElementById('filter');
 const priorityInput = document.getElementById('priority-input');
-const list = document.querySelectorAll('ul');
-const clearBtn = document.querySelector('.btn-clear')
-const newItem = document.createElement('li');
+const clearBtn = document.querySelector('.btn-clear');
 
+// Event Listeners
 itemInput.addEventListener('focus', onFocus);
 itemInput.addEventListener('blur', onBlur);   // for styling purposes
 
 itemInput.addEventListener('input', input);   // looks for when we type
 itemForm.addEventListener('submit', onSubmit);  // looks at when we submit
 
-clearBtn.onclick = () => list.forEach(item => item.remove()); 
+listItems.addEventListener('click', removeItem);
+clearBtn.addEventListener('click', clearItems)
 
+
+// adds styling on search bar
 function onFocus() {
   itemInput.style.outlineStyle = 'solid';
   itemInput.style.outlineWidth = '2px';   // styling the outline
   itemInput.style.outlineColor = 'green';
 }
 
+// removes styling on search bar
 function onBlur() {
   itemInput.style.outlineStyle = 'none'; 
 }
 
+// checks for when the user types
 function input(e) {
   const itemName = e.target.value;  // what helps look for what we type in real time
 }
 
-function onSubmit(e) {
-  // const item = formData.get('item');         get value with these different methods
-  // const priority = formData.get('priority');
-  // const formData =  new FormData(itemForm);
-  // const entries = formData.entries();
-  // for(let entry of entries) { 
-  //   console.log(entry);
-  // }
+// clears items
+function clearItems() {
+  while(listItems.firstChild) {
+    listItems.removeChild(listItems.firstChild);
+  }
+  checkUI();
+} 
 
+// removes any item when clicking the red "x"
+function removeItem(e) {
+  const icon = listItems.querySelector('i');
+  const removeItem = listItems.querySelector('button');
+  const removeButton = e.target;
+  if(removeButton.className === icon.className) {
+    removeItem.parentElement.remove();
+  }
+}
+
+// adds an item when the user submits
+function onSubmit(e) {
   e.preventDefault();
   const item = document.getElementById('item-input').value;
   const priority = document.getElementById('priority-input').value;
@@ -48,10 +64,14 @@ function onSubmit(e) {
     return;
   }
 
-  createNewItemList(item);
+  createNewItemList(item) // calls the function to add to the new list
+  checkUI();
+  itemInput.value = '';
 }
 
-function nestedListElement(item) {
+// creates an the appropriate button with the same attributes and whatever the user inputted when submitting 
+function createNewItemList(item) {
+  const newItem = document.createElement('li');
   const button = document.createElement('button'); // creating button element
   const icon = document.createElement('i');  //creating icon element
 
@@ -59,12 +79,23 @@ function nestedListElement(item) {
   icon.className = 'fa-solid fa-xmark';
 
   newItem.innerHTML = `${item}`
-  button.appendChild(icon);
-  newItem.appendChild(button);
-  listItems.appendChild(newItem);
+  button.appendChild(icon);       // nests the icon into the button with all element and class
+  newItem.appendChild(button);    // nests the button into a list with all element and all classes
+  listItems.appendChild(newItem); // adds the newItem into the listItems with the same attributes          // creates the proper nested element with the right input data
+  checkUI();
 }
 
-function createNewItemList(item) {
-  nestedListElement(item);          // creates the proper nested element with the right input data
-  console.log(newItem);
+// checks to see if there are any items on list -- if not then removes 'filter' and 'clear all'
+function checkUI() {
+  const list = document.querySelectorAll('li');
+  
+  if(list.length === 0) {
+    clearBtn.style.display = 'none';
+    itemFilter.style.display = 'none';
+  } else {
+    clearBtn.style.display = 'block';
+    itemFilter.style.display = 'block';
+  }
 }
+
+checkUI();
