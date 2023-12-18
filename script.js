@@ -4,6 +4,8 @@ const listItems = document.getElementById('item-list');
 const itemInput = document.getElementById('item-input');
 const itemFilter = document.getElementById('filter');
 const clearBtn = document.querySelector('.btn-clear');
+const formBtn = itemForm.querySelector('button');
+let isEditMode = false;
 
 function displayItems() {
   const itemsFromStorage = getItemsFromStorage();
@@ -42,21 +44,33 @@ function clearItems() {
   checkUI();
 } 
 
+function setItemToEdit(item) {
+  isEditMode = true;
+
+  listItems.querySelectorAll('li');
+
+  item.classList.add('edit-mode');
+  formBtn.innerHTML = '<i class="fa-solid fa-pen"dit></i> Update Item';
+  formBtn.style.backgroundColor = '#228B22';
+  itemInput.value = item.textContent;
+}
+
+// what is clicked
+function onClickItem(e) {
+  if(e.target.parentElement.classList.contains('remove-item')) removeItem(e.target.parentElement.parentElement); // element to remove
+  else setItemToEdit(e.target);
+}
+
 // removes any item when clicking the red "x"
 function removeItem(item) {
-  const icon = listItems.querySelector('i');  // comparison 
-  const removeItem = listItems.querySelector('button').parentElement; // element to remove
-  const removeButton = item.target;
-  if(removeButton.className === icon.className) {
-    if(confirm('Are you sure?')) {
-      // removes from DOM
-      removeItem.remove();
+  if(confirm('Are you sure?')) {
+    // removes from DOM
+    item.remove();
 
-      //removes from storage
-      removeItemFromStorage(removeItem.textContent)
+    //removes from storage
+    removeItemFromStorage(item.textContent)
 
-      checkUI();
-    }
+    checkUI();
   }
 }
 
@@ -95,9 +109,18 @@ function onSubmitAddItem(e) {
   const item = itemInput.value;
 
   if(item === '') {
-    alert('Please fill all fields');
-    return;
+    return alert('Please fill all fields');
   }
+
+  // Check for edit mode
+  if(isEditMode) {
+    const itemToEdit = listItems.querySelector('.edit-mode');
+    removeItemFromStorage(itemToEdit.textContent);
+    itemToEdit.classList.remove('edit-mode')
+    itemToEdit.remove();
+    isEditMode = false;
+  } else if(checkIfItemExists(item)) return alert('that item already exists!');
+
   // Create item DOM element
   createNewItemList(item);
 
@@ -106,6 +129,11 @@ function onSubmitAddItem(e) {
 
   checkUI();
   itemInput.value = '';
+}
+
+// check if item exists
+function checkIfItemExists(item) {
+  return getItemsFromStorage().includes(item);
 }
 
 // adding item to local storage
@@ -135,6 +163,8 @@ function getItemsFromStorage() {
 
 // checks to see if there are any items on list -- if not then removes 'filter' and 'clear all'
 function checkUI() {
+  itemInput.value = '';
+
   const list = document.querySelectorAll('li');
 
   if(list.length === 0) {
@@ -144,6 +174,11 @@ function checkUI() {
     clearBtn.style.display = 'block';
     itemFilter.style.display = 'block';
   }
+
+  formBtn.innerHTML ='<i class="fa-solid fa-plus"></i> Add Item';
+  formBtn.style.backgroundColor = '#333'
+
+  isEditMode = false;
 }
 
 // creates an the appropriate button with the same attributes and whatever the user inputted when submitting 
@@ -171,7 +206,7 @@ function init() {
   itemInput.addEventListener('input', input);   // looks for when we type
 
   itemForm.addEventListener('submit', onSubmitAddItem);  // looks at when we submit
-  listItems.addEventListener('click', removeItem);  // looks when we click red 'x'
+  listItems.addEventListener('click', onClickItem);  // looks when we click red 'x'
   clearBtn.addEventListener('click', clearItems)  // clears list
   itemFilter.addEventListener('input', filterItems); // filters the list
 
